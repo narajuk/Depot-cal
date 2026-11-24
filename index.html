@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#123b5d">
+<title>Depot Stock Counting</title>
+<link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--navy:#123b5d;--blue:#1769aa;--bg:#f2f6fb;--line:#d9e3ef;--green:#16804a;--purple:#7040a0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#17212b;font-family:Arial,sans-serif}
+header{background:linear-gradient(110deg,#103b60,#075a91);color:#fff;padding:16px}header h1{margin:0;font-size:21px}header p{margin:5px 0 0;font-size:12px;opacity:.9}
+.wrap{max-width:1150px;margin:auto;padding:12px}.tabs{display:flex;gap:7px;overflow:auto;margin:10px 0 14px}.tab{white-space:nowrap;background:#e5edf7;color:#17324b}.tab.active{background:var(--blue);color:white}
+.panel{display:none}.panel.active{display:block}.card{background:white;border:1px solid var(--line);border-radius:12px;padding:13px;margin:10px 0;box-shadow:0 2px 8px #163b5d0a}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.stat{background:white;border:1px solid var(--line);border-radius:10px;padding:11px}.stat small{color:#64748b;font-size:11px}.stat b{display:block;font-size:19px;margin-top:5px}
+button,input,select{font:inherit}button{border:0;border-radius:8px;padding:10px 13px;background:var(--blue);color:#fff;font-weight:600;cursor:pointer}button.secondary{background:#e7eef6;color:#17324b}button.green{background:var(--green)}button.red{background:#fff0ef;color:#b42318}button.purple{background:var(--purple)}
+input,select{border:1px solid #cbd5e1;border-radius:8px;padding:11px;background:#fff;min-width:0;width:100%}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.row button{flex:0 0 auto}
+label{display:block;font-size:12px;color:#536477;margin:8px 0 5px}.muted{font-size:12px;color:#64748b;line-height:1.5}
+.product{border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0;background:#fff}
+.product-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.code{font-size:12px;color:var(--blue);font-weight:bold}.pname{font-size:14px;font-weight:bold;margin:4px 0}.meta{font-size:11px;color:#64748b}
+.mrpbox{display:flex;align-items:center;gap:8px;margin-top:9px;background:#fff8e6;border:1px solid #f3dfa2;border-radius:8px;padding:7px 9px}.mrpbox span{font-size:12px;font-weight:bold;color:#7a5a00;white-space:nowrap}.mrpbox input{padding:8px;max-width:140px}
+.linehead,.line{display:grid;grid-template-columns:26px 1fr 1fr 1fr 1fr 1fr 34px;gap:6px;align-items:center}.linehead{font-size:10px;color:#64748b;margin:12px 0 5px}.line{margin:6px 0}.line output{background:#eef6ff;padding:11px 3px;border-radius:7px;text-align:center;font-weight:bold}.line button{padding:8px}
+.totalbar{background:#e8f8ed;border-radius:8px;padding:10px;margin-top:10px;font-size:13px;font-weight:bold;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.product.recount{border:2px solid #f08a24;background:#fff9f0}.recountbox{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;font-weight:bold;color:#9a5300}.line input[type=checkbox]{width:20px;height:20px;padding:0;margin:auto}.recountbox input{width:20px;height:20px;flex:0 0 20px;padding:0}.recountbar{background:#fff0e0;color:#9a5300}.metabar{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border:1px solid #cbd5e1;border-radius:8px;font-weight:bold;font-size:14px;margin-bottom:8px;background:#eef6ff}.hidden{display:none!important}.pill{display:inline-block;background:#eaf6ef;color:var(--green);font-size:10px;padding:4px 7px;border-radius:20px}
+.calc{max-width:390px;margin:auto;background:#e0e1e3;border-radius:22px;padding:14px 12px 16px}
+.display{font-size:42px;line-height:1.15;text-align:right;padding:34px 8px 6px;min-height:120px;overflow-x:auto;overflow-y:hidden;white-space:nowrap;color:#1b1b1b;display:flex;align-items:flex-end;justify-content:flex-end}
+.calcresult{font-size:24px;color:#6b6e72;text-align:right;padding:0 8px 16px;min-height:42px}
+.keys{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.keys button{aspect-ratio:1/1;border-radius:50%;font-size:28px;font-weight:600;padding:0;background:#ebebeb;color:#1b1b1b;display:flex;align-items:center;justify-content:center}
+.keys button.fn,.keys button.op{background:#d6d7d9;color:#1b1b1b}
+.keys button.eq{background:#ff7a00;color:#fff;font-size:34px}
+.keys button:active{filter:brightness(.92)}
+.reportrow{display:flex;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}
+footer{text-align:center;color:#64748b;font-size:11px;padding:20px}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.linehead,.line{grid-template-columns:24px 1fr 1fr 1fr 1fr 1fr 28px;gap:3px}.line input[type=checkbox]{padding:0}.line input{padding:10px 5px;font-size:14px}.line output{font-size:12px}.wrap{padding:9px}}
+@media print{header,.tabs,.no-print,footer{display:none!important}.panel{display:none!important}#report.panel{display:block!important}.card{box-shadow:none}}
+</style></head>
+<body>
+<header><h1>📦 Depot Stock Counting</h1><p>Offline Web App · Line-wise Counting · MRP Value · Calculator · Freight · Price Match</p></header>
+<div class="wrap">
+<nav class="tabs no-print">
+<button class="tab active" data-tab="count" onclick="tab('count')">📦 Stock Counting</button>
+<button class="tab" data-tab="calculator" onclick="tab('calculator')">🧮 Calculator</button>
+<button class="tab" data-tab="report" onclick="tab('report')">📊 Stock Report</button>
+<button class="tab" data-tab="settings" onclick="tab('settings')">⚙️ Product Settings</button>
+<button class="tab" data-tab="products" onclick="tab('products')">✏️ Add / Edit Products</button>
+</nav>
+<section id="count" class="panel active">
+<div class="stats">
+<div class="stat"><small>Products Counted</small><b id="sProducts">0</b></div>
+<div class="stat"><small>Total Boxes</small><b id="sBoxes">0</b></div>
+<div class="stat"><small>Total Pieces</small><b id="sPieces">0</b></div>
+<div class="stat"><small>Total Weight</small><b id="sWeight">0.000 MT</b></div>
+<div class="stat"><small>Total MRP Value</small><b id="sMrp">₹0</b></div>
+</div>
+<div class="card no-print"><div class="row"><div><label>Date</label><input id="repDate" type="date" onchange="setMeta()"></div><div><label>User Name</label><input id="repUser" placeholder="Enter your name" oninput="setMeta()"></div></div></div>
+<div class="card no-print">
+<strong>Select Products</strong>
+<p class="muted">Search a product and add it to your counting screen. The full product list stays hidden until you search.</p>
+<div class="row"><input id="pickerSearch" placeholder="Search code or product name..." oninput="picker()"><button onclick="picker()">Search</button></div>
+<div id="pickerResults"></div>
+<div class="row" style="margin-top:10px"><button class="secondary" onclick="showChosen()">Show Selected Products</button><button class="secondary" onclick="hideAll()">Hide All Products</button></div>
+</div>
+<div class="row no-print"><strong style="flex:2">Selected Products for Counting</strong><button class="secondary" onclick="exportCSV()">Export CSV</button><button class="secondary" onclick="window.print()">Print</button></div>
+<div id="selectedProducts"></div>
+</section>
+<section id="calculator" class="panel">
+<div class="card"><h2 style="margin:0 0 6px">🧮 Calculator</h2><p class="muted">Use for quick multiplication, addition, subtraction and division while counting.</p>
+<div class="calc"><div id="display" class="display">0</div><div id="calcResult" class="calcresult"></div><div class="keys">
+<button class="fn" onclick="clearCalc()">AC</button><button class="fn" onclick="percent()">%</button><button class="fn" onclick="backspace()">⌫</button><button class="op" onclick="key('÷')">÷</button>
+<button onclick="key('7')">7</button><button onclick="key('8')">8</button><button onclick="key('9')">9</button><button class="op" onclick="key('×')">×</button>
+<button onclick="key('4')">4</button><button onclick="key('5')">5</button><button onclick="key('6')">6</button><button class="op" onclick="key('−')">−</button>
+<button onclick="key('1')">1</button><button onclick="key('2')">2</button><button onclick="key('3')">3</button><button class="op" onclick="key('+')">+</button>
+<button onclick="key('00')">00</button><button onclick="key('0')">0</button><button onclick="key('.')">.</button><button class="eq" onclick="calculate()">=</button>
+</div></div></div>
+</section>
+<section id="report" class="panel">
+<div class="card"><div class="row"><h2 style="margin:0;flex:2">Stock Report</h2><button onclick="exportCSV()">Export CSV</button><button class="secondary" onclick="window.print()">Print</button></div><div id="reportContent"></div></div>
+</section>
+<section id="products" class="panel">
+<div class="card">
+<h2 id="formTitle" style="margin-top:0">➕ Add New Product</h2>
+<p class="muted">Enter new products here. After saving, they will appear in Product Search and Settings.</p>
+<label>Product Code</label><input id="newCode" inputmode="numeric" placeholder="e.g. 180000999">
+<label>Product Name / Description</label><input id="newName" placeholder="Enter full product description">
+<div class="row">
+<div><label>Weight per Box (KG)</label><input id="newWeight" type="number" min="0.001" step="0.001" placeholder="14.560"></div>
+<div><label>Pieces per Box</label><input id="newPieces" type="number" min="1" step="1" placeholder="16"></div>
+<div><label>MRP per Piece (₹)</label><input id="newMrp" type="number" min="0" step="0.01" placeholder="150"></div>
+</div>
+<div class="row" style="margin-top:12px"><button id="saveProdBtn" class="green" onclick="addNewMasterProduct()">Save New Product</button><button class="secondary" onclick="clearNewProductForm()">Clear</button></div>
+<p id="productMessage" class="muted" aria-live="polite"></p>
+</div>
+<div class="card"><h3 style="margin-top:0">Product List (Edit / Delete)</h3><input id="editSearch" placeholder="Find product..." oninput="customProductList()" style="margin-bottom:8px"><div id="customProductList"></div></div>
+</section>
+<section id="settings" class="panel">
+<div class="card"><h2 style="margin-top:0">Product Visibility</h2><p class="muted">Choose which products appear in your counting screen. Hidden products and their saved counts are retained.</p><div class="row"><input id="settingsSearch" placeholder="Find product..." oninput="settingsList()"><button class="secondary" onclick="allProducts(true)">Select All</button><button class="secondary" onclick="allProducts(false)">Deselect All</button></div><div id="settingsList"></div></div>
+<div class="card"><strong>Offline data</strong><p class="muted">Your entries and MRP values are stored in this browser on this device. Export CSV regularly as a backup. Clearing browser data may erase saved entries.</p><button class="red" onclick="resetData()">Clear All Saved Counts</button></div>
+</section>
+</div><footer>Depot Stock Counting · Offline-ready · Editable product master list</footer>
+<script>
+let master=[
+["180000008","FREEDOM REF. SUNFLOWER OIL 1 LTR.X16NOS.",14.560,16],["180000237","FREEDOM REF. SUNFLOWER OIL 1 LTR.X16NOS(OFFER)",14.560,16],["180000494","FREEDOM REF.SUNFLOWER OIL 1LTRX16NOS-PLN",14.560,16],["180000066","FREEDOM REF.SUNFLOWER OIL1/2 LTR.X20NOS.",9.100,20],["180000076","FREEDOM REF.SUNFLOWER OIL 1 LTR X 12PET",10.921,12],["180000203","FREEDOM REF.SUNFLOWER OIL1/2 LTR X24 PET",10.920,24],["180000118","FREEDOM REF. SUNFLOWER OIL 15 LTR. JAR",13.650,1],["180000179","FREEDOM REF.SUNFLOWER OIL 2 LTR X 6 PET",10.919,6],["180000204","FREEDOM REF.SF OIL 2 LTR X 6 PET -OFFER",10.915,6],["180000371","FREEDOM REF. SUNFLOWER OIL 10LTR.IML BKT",9.133,1],["180000249","FREEDOM REF.SUNFLOWEROIL 5LTRX4JARS-NEW",18.200,4],["180000005","FREEDOM REF. SUNFLOWER OIL 15 KG. TIN",15.000,1],["180000006","FREEDOM REF. SUNFLOWER OIL 15 LTR. TIN",13.650,1],["180000437","FREEDOM REF. RICE BRAN OIL 1 LTR.X16 NOS",14.560,16],["180000250","FREEDOM REF. RICE BRAN 15 LTR. TIN",13.653,1],["180000170","FREEDOM REF. RICE BRAN OIL 5 LTR.X 4 JAR",18.200,4],["180000248","FREEDOM FILTE. GROUNDNUT OIL 1 LTRX10NOS",9.101,10],["180000419","FREEDOM FILTE. GN. OIL 1 LTRX10NOS - O",9.101,10],["180000217","FREEDOM FILTE. GROUNDNUT OIL 15 LTR. TIN",13.650,1],["180000251","FREEDOM FILTE. GROUNDNUT OIL 5 LTRx4JAR",18.200,4],["180000260","FREEDOM K.GHANI MUSTARD OIL 1LTRX12 PET",10.918,12],["180000261","FREEDOM K.GHANI MUSTARD OIL1/2LTRX24 PET",10.919,24],["180000298","FIRST KLASS REF. PALMOLEIN 1 LTR.X15NOS.",13.387,15],["180000255","FIRSTKLASSREF.PALMOLEIN.1/2LTRX20NOS-NEW",8.940,20],["180000256","FIRSTKLASS REF.PALMOLEIN. 15 LTR.TIN-NEW",13.400,1],["180000257","FIRST KLASS REF.PALMOLEIN 15 KG.TIN- NEW",15.000,1],["180000377","GEF SRI KRUPA REF.RB OIL 1 LTR X 12 PET",10.920,12],["180000378","GEF SRI KRUPA REF.RB OIL 1/2 LTR X24 PET",10.920,24]];
+const CUSTOM_KEY="depot_stock_custom_products_v1";
+try{const custom=JSON.parse(localStorage.getItem(CUSTOM_KEY)||"[]");if(Array.isArray(custom)){custom.forEach(p=>{if(Array.isArray(p)&&p.length===4&&!master.some(m=>m[0]===String(p[0])))master.push([String(p[0]),String(p[1]),Number(p[2]),Number(p[3])])})}}catch(e){}
+const MASTER_KEY="depot_stock_master_v2";try{const m=JSON.parse(localStorage.getItem(MASTER_KEY)||"null");if(Array.isArray(m)&&m.length&&m.every(p=>Array.isArray(p)&&p.length>=4))master=m.map(p=>[String(p[0]),String(p[1]),Number(p[2]),Number(p[3])])}catch(e){}
+function sn(n){let s=String(n).toUpperCase();
+s=s.replace(/FIRST ?KLASS/g,"FK ").replace(/GEF SRI KRUPA/g,"SRI KRUPA ")
+.replace(/SUNFLOWER ?OIL|\bSF OIL\b/g,"SF ").replace(/RICE BRAN OIL|RICE BRAN|\bRB OIL\b/g,"RB ")
+.replace(/FILTE\.?/g,"").replace(/GROUNDNUT OIL|\bGN\. OIL\b/g,"GN ").replace(/K\.GHANI MUSTARD OIL/g,"MUSTARD ")
+.replace(/PALMOLEIN\.?/g," PALM ").replace(/REF\.?/g," ")
+.replace(/\(OFFER\)|-\s*OFFER/g," OFFER").replace(/-\s*NEW\b/g," ").replace(/-\s*PLN\b/g," PLN")
+.replace(/1\/2 ?LTR\.?/g,"½L ").replace(/(\d+) ?LTR\.?/g,"$1L ").replace(/(\d+) ?KG\.?/g,"$1KG ")
+.replace(/\s*X\s*(\d+)\s*(NOS|PET|JARS|JAR)?\.?/g,(m,k,u)=>"×"+k+(u&&u!=="NOS"?" "+(u==="JARS"?"JAR":u):""))
+.replace(/\s-\s+O\b/g," OFFER").replace(/\./g," ").replace(/\s+/g," ").trim();
+return s||String(n)}
+const KEY="depot_stock_webapp_v3";let state={counts:{},selected:[],hidden:[],mrp:{},recount:{},target:{},loose:{},date:"",user:""};
+try{state=Object.assign(state,JSON.parse(localStorage.getItem(KEY)||"{}"))}catch(e){}
+if(!state.mrp||typeof state.mrp!=="object")state.mrp={};if(!state.recount||typeof state.recount!=="object")state.recount={};if(!state.target||typeof state.target!=="object")state.target={};if(!state.loose||typeof state.loose!=="object")state.loose={};
+state.selected=[...new Set(state.selected)];function selList(){return state.selected.map(c=>master.find(p=>p[0]===c)).filter(Boolean)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}summary();report()}
+function getMrp(code){return Math.max(0,+state.mrp[code]||0)}
+function money(v){return "₹"+(+v||0).toLocaleString("en-IN",{maximumFractionDigits:2})}
+function getLines(code){if(!state.counts[code])state.counts[code]=[{a:"",b:"",c:"",m:""}];return state.counts[code]}
+function todayStr(){let d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function curDate(){return state.date||todayStr()}
+function fmtDate(s){let m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(s);return m?`${m[3]}-${m[2]}-${m[1]}`:s}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function metaHTML(){return `<div class="metabar"><span>Date: ${fmtDate(curDate())}</span><span>User: ${esc(state.user||"-")}</span></div>`}
+function setMeta(){state.date=document.getElementById("repDate").value;state.user=document.getElementById("repUser").value.trim();save()}
+function getLoose(code){return state.loose[code]||{on:false,g:"",d:""}}
+function tgtHTML(p,r){let t=+state.target[p[0]]||0;if(!t)return "";let b=r.boxes-t;return `<span>Target: ${t}</span><span style="color:${b<0?"#b42318":"#16804a"}">Balance: ${b>0?"+":""}${b}</span>`}
+function looseHTML(code){let l=getLoose(code);if(!l.on||(l.g===""&&l.d===""))return "";return `<br><small>Loose: Good ${l.g||0} · Damage ${l.d||0}</small>`}
+function setTarget(code,v){state.target[code]=v;save();let p=master.find(x=>x[0]===code),t=document.getElementById(`total-${code}`);if(p&&t)t.innerHTML=totalHTML(p)}
+function setLooseOn(code,v){let l=getLoose(code);state.loose[code]={on:v,g:l.g,d:l.d};save();renderSelected()}
+function setLoose(code,k,v){let l=getLoose(code);state.loose[code]={on:l.on,g:l.g,d:l.d};state.loose[code][k]=v;save()}
+function lineBoxes(x){return Math.max(0,+x.a||0)*Math.max(0,+x.b||0)+Math.max(0,+x.c||0)}
+function lineMrp(code,x){return(x.m!==undefined&&x.m!=="")?Math.max(0,+x.m||0):getMrp(code)}
+function result(p){let boxes=0,value=0,rb=0,rv=0,n=0;getLines(p[0]).forEach(x=>{let b=lineBoxes(x),v=b*p[3]*lineMrp(p[0],x);boxes+=b;value+=v;if(x.r){n++;rb+=b;rv+=v}});return {boxes,pieces:boxes*p[3],kg:boxes*p[2],value,rc:{n,boxes:rb,pieces:rb*p[3],kg:rb*p[2],value:rv}}}
+function rcHTML(p){let r=result(p).rc;if(!r.n)return "";return `<div class="totalbar recountbar"><span>⟳ Recount Total: ${r.boxes} Boxes</span><span>Pieces: ${r.pieces}</span><span>Weight: ${(r.kg/1000).toFixed(3)} MT</span><span>MRP Value: ${money(r.value)}</span></div>`}
+function totalHTML(p){let r=result(p);return `<span>Total Boxes: ${r.boxes}</span><span>Pieces: ${r.pieces}</span><span>Weight: ${(r.kg/1000).toFixed(3)} MT</span><span>MRP Value: ${money(r.value)}</span>${tgtHTML(p,r)}`}
+function tab(id){document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("active",x.id===id));document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x.dataset.tab===id));if(id==="report")report();if(id==="settings")settingsList();if(id==="products")customProductList()}
+function picker(){let q=document.getElementById("pickerSearch").value.toLowerCase().trim();let found=master.filter(p=>(p[0].includes(q)||p[1].toLowerCase().includes(q))&&!state.selected.includes(p[0])).slice(0,12);document.getElementById("pickerResults").innerHTML=found.length?found.map(p=>`<div class="reportrow"><span><b>${p[0]}</b> · ${sn(p[1])}<br><small>${p[2].toFixed(3)} KG/box · ${p[3]} pcs/box${getMrp(p[0])?" · MRP "+money(getMrp(p[0])):""}</small></span><button onclick="addProduct('${p[0]}')">Add</button></div>`).join(""):'<p class="muted">No matching products, or already selected.</p>'}
+function addProduct(code){if(!state.selected.includes(code))state.selected.push(code);state.collapsed=false;save();picker();renderSelected()}
+function removeProduct(code){state.selected=state.selected.filter(x=>x!==code);save();renderSelected()}
+function hideAll(){state.collapsed=true;save();renderSelected()}
+function showChosen(){state.collapsed=false;save();renderSelected()}
+function renderSelected(){let list=state.collapsed?[]:selList().filter(p=>!state.hidden.includes(p[0]));document.getElementById("selectedProducts").innerHTML=list.length?list.map(p=>{let arr=getLines(p[0]);return `<article class="product${arr.some(x=>x.r)?" recount":""}"><div class="product-head"><div><div class="code">${p[0]}</div><div class="pname">${sn(p[1])}</div><div class="meta">${p[2].toFixed(3)} KG / Box · ${p[3]} Pieces / Box</div></div><button class="red no-print" onclick="removeProduct('${p[0]}')">Hide</button></div><div class="mrpbox"><span>Default MRP (₹/pc)</span><input type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" value="${state.mrp[p[0]]||""}" oninput="setMrp('${p[0]}',this.value)"></div><div class="muted" style="margin-top:6px">If this product has two MRPs, enter the MRP on each line. A blank line MRP uses the default MRP.</div><div class="mrpbox"><span>Target (boxes)</span><input type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${state.target[p[0]]||""}" oninput="setTarget('${p[0]}',this.value)"></div><label class="recountbox no-print"><input type="checkbox" ${getLoose(p[0]).on?"checked":""} onchange="setLooseOn('${p[0]}',this.checked)"> Count loose pieces (display only)</label>${getLoose(p[0]).on?`<div class="row"><div><label>Good Pieces</label><input type="number" min="0" step="1" inputmode="numeric" value="${getLoose(p[0]).g}" oninput="setLoose('${p[0]}','g',this.value)"></div><div><label>Damage Pieces</label><input type="number" min="0" step="1" inputmode="numeric" value="${getLoose(p[0]).d}" oninput="setLoose('${p[0]}','d',this.value)"></div></div>`:""}<div class="linehead"><span>RC</span><span>COUNT</span><span>MULTIPLIER</span><span>+ ADD</span><span>MRP / PC</span><span>BOXES</span><span></span></div><div id="lines-${p[0]}">${arr.map((x,i)=>`<div class="line"><input type="checkbox" title="Recount" ${x.r?"checked":""} onchange="setLineRecount('${p[0]}',${i},this.checked)"><input type="number" min="0" step="1" inputmode="numeric" placeholder="65" value="${x.a}" oninput="edit('${p[0]}',${i},'a',this.value)"><input type="number" min="0" step="1" inputmode="numeric" placeholder="2" value="${x.b}" oninput="edit('${p[0]}',${i},'b',this.value)"><input type="number" min="0" step="1" inputmode="numeric" placeholder="0" value="${x.c||""}" oninput="edit('${p[0]}',${i},'c',this.value)"><input type="number" min="0" step="0.01" inputmode="decimal" placeholder="${state.mrp[p[0]]||'MRP'}" value="${x.m||""}" oninput="edit('${p[0]}',${i},'m',this.value)"><output id="out-${p[0]}-${i}">${lineBoxes(x).toLocaleString("en-IN")}</output><button class="red" onclick="removeLine('${p[0]}',${i})">×</button></div>`).join("")}</div><div class="row no-print" style="margin-top:9px"><button class="secondary" onclick="addLine('${p[0]}')">+ Add Line</button><button class="secondary" onclick="clearProduct('${p[0]}')">Clear Product</button></div><div class="totalbar" id="total-${p[0]}">${totalHTML(p)}</div><div id="rc-${p[0]}">${rcHTML(p)}</div></article>`}).join(""):(state.collapsed&&state.selected.length?'<div class="card muted">Products are hidden. Tap "Show Selected Products" to view them.</div>':'<div class="card muted">No products selected. Search above and tap Add to choose the products you need.</div>');summary()}
+function setLineRecount(code,i,v){getLines(code)[i].r=v;save();renderSelected()}
+function setMrp(code,v){state.mrp[code]=v;save();let p=master.find(x=>x[0]===code),t=document.getElementById(`total-${code}`);if(p&&t){t.innerHTML=totalHTML(p);document.getElementById(`rc-${code}`).innerHTML=rcHTML(p)}}
+function edit(code,i,k,v){getLines(code)[i][k]=v;save();let p=master.find(x=>x[0]===code),x=getLines(code)[i];document.getElementById(`out-${code}-${i}`).textContent=lineBoxes(x).toLocaleString("en-IN");document.getElementById(`total-${code}`).innerHTML=totalHTML(p);document.getElementById(`rc-${code}`).innerHTML=rcHTML(p)}
+function addLine(code){getLines(code).push({a:"",b:"",c:"",m:""});save();renderSelected()}
+function removeLine(code,i){let a=getLines(code);if(a.length>1)a.splice(i,1);else a[0]={a:"",b:"",c:"",m:""};save();renderSelected()}
+function clearProduct(code){state.counts[code]=[{a:"",b:"",c:"",m:""}];save();renderSelected()}
+function summary(){let n=0,b=0,pcs=0,kg=0,val=0;selList().forEach(p=>{let r=result(p);if(r.boxes)n++;b+=r.boxes;pcs+=r.pieces;kg+=r.kg;val+=r.value});document.getElementById("sProducts").textContent=n;document.getElementById("sBoxes").textContent=b.toLocaleString("en-IN");document.getElementById("sPieces").textContent=pcs.toLocaleString("en-IN");document.getElementById("sWeight").textContent=(kg/1000).toFixed(3)+" MT";document.getElementById("sMrp").textContent=money(val)}
+function report(){let list=selList();let b=0,pcs=0,kg=0,val=0,rcn=0,rcb=0,rcp=0,rck=0,rcv=0;document.getElementById("reportContent").innerHTML=metaHTML()+(list.length?list.map(p=>{let r=result(p);b+=r.boxes;pcs+=r.pieces;kg+=r.kg;val+=r.value;rcn+=r.rc.n;rcb+=r.rc.boxes;rcp+=r.rc.pieces;rck+=r.rc.kg;rcv+=r.rc.value;let detail=getLines(p[0]).filter(x=>x.a!==""||x.b!==""||(x.c||"")!=="").map(x=>`${x.a||0} × ${x.b||0}${+x.c?" + "+x.c:""} = ${lineBoxes(x)}${x.m?" @ "+money(x.m):""}${x.r?" ⟳ RECOUNT":""}`).join("<br>")||"Not counted";return `<div class="reportrow"><span><b>${p[0]}</b> · ${sn(p[1])}${getLines(p[0]).some(x=>x.r)?' <span class="pill" style="background:#fff0e0;color:#b45309">RECOUNT</span>':""}<br><small>Default MRP: ${money(getMrp(p[0]))} / piece</small><br><small>${detail}</small>${r.rc.n?`<br><small>⟳ Recount: ${r.rc.boxes} boxes · ${(r.rc.kg/1000).toFixed(3)} MT · ${money(r.rc.value)}</small>`:""}${looseHTML(p[0])}</span><b>${r.boxes} boxes<br>${(r.kg/1000).toFixed(3)} MT<br>${money(r.value)}${+state.target[p[0]]?`<br><small>Target ${+state.target[p[0]]} · Balance ${r.boxes-(+state.target[p[0]])}</small>`:""}</b></div>`}).join("")+`<div class="totalbar"><span>Grand Total: ${b} Boxes</span><span>${pcs} Pieces</span><span>${(kg/1000).toFixed(3)} MT</span><span>MRP Value: ${money(val)}</span></div>${rcn?`<div class="totalbar recountbar"><span>⟳ Recount Total: ${rcb} Boxes</span><span>${rcp} Pieces</span><span>${(rck/1000).toFixed(3)} MT</span><span>MRP Value: ${money(rcv)}</span></div>`:""}`:'<p class="muted">No products selected yet. Add products in Stock Counting.</p>')}
+function settingsList(){let q=(document.getElementById("settingsSearch")?.value||"").toLowerCase();document.getElementById("settingsList").innerHTML=master.filter(p=>p[0].includes(q)||p[1].toLowerCase().includes(q)).map(p=>`<div class="reportrow"><span><b>${p[0]}</b> · ${sn(p[1])}</span><input style="width:22px;flex:0 0 22px" type="checkbox" ${state.hidden.includes(p[0])?"":"checked"} onchange="toggleHidden('${p[0]}',this.checked)"></div>`).join("")}
+function toggleHidden(code,show){state.hidden=show?state.hidden.filter(x=>x!==code):[...new Set([...state.hidden,code])];state.selected=state.selected.filter(x=>!state.hidden.includes(x));save();settingsList();renderSelected()}
+function allProducts(show){state.hidden=show?[]:master.map(p=>p[0]);if(!show)state.selected=[];save();settingsList();renderSelected()}
+function exportCSV(){let rows=[["Product Code","Description","KG per Box","Pieces per Box","Default MRP per Piece","Line Details","Total Boxes","Total Pieces","Total MT","Total MRP Value","Recount","Target Boxes","Balance Boxes","Good Pieces","Damage Pieces","Date","User Name"]];selList().forEach(p=>{let r=result(p),d=getLines(p[0]).map(x=>`${x.a||0} x ${x.b||0}${+x.c?" + "+x.c:""} = ${lineBoxes(x)}${x.m?" @ "+x.m:""}${x.r?" [RECOUNT]":""}`).join(" ; ");rows.push([p[0],p[1],p[2],p[3],getMrp(p[0]),d,r.boxes,r.pieces,(r.kg/1000).toFixed(3),r.value.toFixed(2),getLines(p[0]).some(x=>x.r)?"Yes":"No",state.target[p[0]]||"",state.target[p[0]]?r.boxes-(+state.target[p[0]]):"",getLoose(p[0]).on?getLoose(p[0]).g:"",getLoose(p[0]).on?getLoose(p[0]).d:"",fmtDate(curDate()),state.user||""])});let csv=rows.map(a=>a.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(",")).join("\r\n");let blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="Depot_Stock_Report.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+let editingCode=null;
+function saveMaster(){try{localStorage.setItem(MASTER_KEY,JSON.stringify(master))}catch(e){}}
+function renameCode(o,n){[state.counts,state.mrp,state.recount,state.target,state.loose].forEach(obj=>{if(obj&&o in obj){obj[n]=obj[o];delete obj[o]}});state.selected=state.selected.map(c=>c===o?n:c);state.hidden=state.hidden.map(c=>c===o?n:c)}
+function endEdit(){editingCode=null;document.getElementById("formTitle").textContent="➕ Add New Product";document.getElementById("saveProdBtn").textContent="Save New Product"}
+function startEdit(code){const p=master.find(x=>x[0]===code);if(!p)return;editingCode=code;document.getElementById("newCode").value=p[0];document.getElementById("newName").value=p[1];document.getElementById("newWeight").value=p[2];document.getElementById("newPieces").value=p[3];document.getElementById("newMrp").value=state.mrp[code]||"";document.getElementById("formTitle").textContent="✏️ Edit Product";document.getElementById("saveProdBtn").textContent="Update Product";document.getElementById("productMessage").textContent="";document.getElementById("newCode").scrollIntoView({block:"center"})}
+function deleteProduct(code){const p=master.find(x=>x[0]===code);if(!p)return;if(!confirm("Delete "+code+" · "+sn(p[1])+"? Its saved counts will also be removed."))return;master=master.filter(x=>x[0]!==code);[state.counts,state.mrp,state.recount,state.target,state.loose].forEach(o=>{if(o)delete o[code]});state.selected=state.selected.filter(c=>c!==code);state.hidden=state.hidden.filter(c=>c!==code);if(editingCode===code)clearNewProductForm();saveMaster();save();customProductList();picker();renderSelected();settingsList()}
+function addNewMasterProduct(){
+ const code=document.getElementById("newCode").value.trim();
+ const name=document.getElementById("newName").value.trim();
+ const weight=Number(document.getElementById("newWeight").value);
+ const pieces=Number(document.getElementById("newPieces").value);
+ const mrp=Number(document.getElementById("newMrp").value)||0;
+ const msg=document.getElementById("productMessage");
+ if(!code||!name||!Number.isFinite(weight)||weight<=0||!Number.isInteger(pieces)||pieces<=0||mrp<0){msg.textContent="Please enter a product code, name, valid box weight and pieces per box.";return}
+ if(!/^[A-Za-z0-9_-]+$/.test(code)){msg.textContent="Product code can contain only letters, numbers, - and _ (no spaces).";return}
+ if(editingCode){
+  const i=master.findIndex(p=>p[0]===editingCode);
+  if(i<0){clearNewProductForm();return}
+  if(code!==editingCode&&master.some(p=>p[0]===code)){msg.textContent="This product code already exists. Please use a unique code.";return}
+  const old=editingCode;master[i]=[code,name,weight,pieces];
+  if(code!==old)renameCode(old,code);
+  if(mrp)state.mrp[code]=mrp;else delete state.mrp[code];
+  saveMaster();save();clearNewProductForm();customProductList();picker();renderSelected();settingsList();
+  msg.textContent="Product updated successfully.";return}
+ if(master.some(p=>p[0]===code)){msg.textContent="This product code already exists. Please use a unique code.";return}
+ master.push([code,name,weight,pieces]);saveMaster();
+ if(mrp)state.mrp[code]=mrp;
+ if(!state.selected.includes(code))state.selected.push(code);state.collapsed=false;
+ save();clearNewProductForm();customProductList();picker();renderSelected();settingsList();
+ msg.textContent="Product saved successfully and added to your selected counting products.";
+}
+function clearNewProductForm(){["newCode","newName","newWeight","newPieces","newMrp"].forEach(id=>document.getElementById(id).value="");endEdit()}
+function customProductList(){
+ const q=(document.getElementById("editSearch")?.value||"").toLowerCase().trim();
+ const list=master.filter(p=>!q||p[0].toLowerCase().includes(q)||p[1].toLowerCase().includes(q)||sn(p[1]).toLowerCase().includes(q));
+ document.getElementById("customProductList").innerHTML=list.length?list.map(p=>`<div class="reportrow"><span><b>${p[0]}</b> · ${sn(p[1])}<br><small>${p[2].toFixed(3)} KG/box · ${p[3]} pcs/box${getMrp(p[0])?" · MRP "+money(getMrp(p[0])):""}</small></span><span class="no-print" style="display:flex;gap:6px;flex:0 0 auto"><button class="secondary" onclick="startEdit('${p[0]}')">Edit</button><button class="red" onclick="deleteProduct('${p[0]}')">Delete</button></span></div>`).join(""):'<p class="muted">No products found.</p>';
+}
+function resetData(){if(confirm("Delete all saved counting lines and selected products? (MRP values are kept)")){state={counts:{},selected:[],hidden:[],mrp:state.mrp||{},recount:{},target:state.target||{},loose:{},date:state.date||"",user:state.user||""};save();renderSelected();settingsList()}}
+let calcExpr="";const OPS="+−×÷";
+function evalExpr(s){s=s.replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-").replace(/(\d+\.?\d*)%/g,"($1/100)");if(!/^[0-9.+*\/() -]+$/.test(s))throw 0;let v=Function('"use strict";return ('+s+')')();if(!Number.isFinite(v))throw 0;return Number(v.toFixed(8))}
+function preview(){let s=calcExpr.replace(/[+−×÷.]+$/,"");if(!/[+−×÷%]/.test(s.replace(/^−/,"")))return "";try{return String(evalExpr(s)).replace("-","−")}catch(e){return ""}}
+function render(){document.getElementById("display").textContent=calcExpr||"0";document.getElementById("calcResult").textContent=preview()}
+function lastNum(){return calcExpr.split(/[+−×÷]/).pop()}
+function key(k){const last=calcExpr.slice(-1);
+ if(OPS.includes(k)){if(!calcExpr){if(k==="−")calcExpr="−";else return}else if(OPS.includes(last)){calcExpr=calcExpr.slice(0,-1)+k}else if(calcExpr!=="−"){calcExpr+=k}}
+ else if(k==="."){let n=lastNum();if(n.includes("."))return;calcExpr+=(n===""||last==="%")?"0.":"."}
+ else if(k==="00"){if(lastNum()===""||lastNum()==="0"||last==="%")return;calcExpr+="00"}
+ else{if(last==="%")calcExpr+="×";calcExpr+=k}
+ render()}
+function percent(){if(/[0-9]$/.test(calcExpr)){calcExpr+="%";render()}}
+function clearCalc(){calcExpr="";render()}
+function backspace(){calcExpr=calcExpr.slice(0,-1);render()}
+function calculate(){try{let s=calcExpr.replace(/[+−×÷.]+$/,"");if(!s)return;calcExpr=String(evalExpr(s)).replace("-","−");render()}catch(e){document.getElementById("display").textContent="Error";document.getElementById("calcResult").textContent="";calcExpr=""}}
+document.getElementById("repDate").value=curDate();document.getElementById("repUser").value=state.user||"";
+picker();renderSelected();summary();
+</script>
+<!-- ===== ADD-ON: Freight + Price Match tabs (paste just before </body>) ===== -->
+<style>
+.bigres{background:#e8f2fe;border-radius:12px;padding:14px;text-align:center;margin-top:12px}
+.bigres b{display:block;font-size:30px;color:#1769aa;margin-top:4px}
+.pmst{border-radius:12px;padding:14px;text-align:center;font-size:18px;font-weight:700}
+.pmst.ok{background:#e3f6e9;color:#157f3b}.pmst.bad{background:#fdeceb;color:#b42318}
+.pmst small{display:block;font-size:13px;font-weight:400;margin-top:6px}
+.pmtab{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.pmtab th,.pmtab td{padding:7px 3px;text-align:right;border-bottom:1px solid #d9e3ef}
+.pmtab th:first-child,.pmtab td:first-child{text-align:left}
+.pmtab th{color:#64748b;font-size:11px}
+</style>
+<script>
+(function(){
+function $(i){return document.getElementById(i)}
+function nz(v){v=String(v).replace(/,/g,'.').replace(/[^0-9.]/g,'');var p=v.split('.');if(p.length>2)v=p[0]+'.'+p.slice(1).join('');return parseFloat(v)}
+function f2(n){return n==null||isNaN(n)?'-':n.toFixed(2)}
+function inp(id,ph){return '<input id="'+id+'" type="text" inputmode="decimal" autocomplete="off" placeholder="'+ph+'">'}
+function side(k,t,u){return '<div class="card"><h3 style="margin:0">'+t+'</h3><label>Price (₹)</label>'+inp('pm_p'+k,'e.g. 120')+'<div class="row"><div><label>Per</label><select id="pm_u'+k+'"><option value="piece"'+(u==='piece'?' selected':'')+'>Piece</option><option value="box"'+(u==='box'?' selected':'')+'>Box</option></select></div><div><label>Tax %</label>'+inp('pm_t'+k,'18')+'</div></div><label>Tax</label><select id="pm_i'+k+'"><option value="0">Tax to be added (not in price)</option><option value="1">Tax already included in price</option></select></div>'}
+
+var standalone=!document.querySelector('.tabs');
+if(standalone){
+  document.head.insertAdjacentHTML('beforeend','<meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;background:#f2f6fb;color:#17212b;font-family:Arial,sans-serif}.wrap{max-width:600px;margin:auto;padding:12px}.tabs{display:flex;gap:7px;margin:10px 0}.panel{display:none}.panel.active{display:block}.card{background:#fff;border:1px solid #d9e3ef;border-radius:12px;padding:13px;margin:10px 0}button,input,select{font:inherit}button{border:0;border-radius:8px;padding:10px 13px;background:#1769aa;color:#fff;font-weight:600}button.secondary{background:#e7eef6;color:#17324b}.tab{background:#e5edf7;color:#17324b}.tab.active{background:#1769aa;color:#fff}input,select{border:1px solid #cbd5e1;border-radius:8px;padding:11px;width:100%;min-width:0;background:#fff}.row{display:flex;gap:8px}.row>*{flex:1}label{display:block;font-size:12px;color:#536477;margin:8px 0 5px}.muted{font-size:12px;color:#64748b}</style>');
+  document.body.insertAdjacentHTML('afterbegin','<div class="wrap"><h2 style="margin:6px 0">📦 Depot Tools</h2><nav class="tabs"></nav></div>');
+  window.tab=function(id){document.querySelectorAll('.panel').forEach(function(x){x.classList.toggle('active',x.id===id)});document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('active',x.dataset.tab===id)})};
+}
+var nav=document.querySelector('.tabs'),wrap=document.querySelector('.wrap');
+[['freight','🚚 Freight'],['price','⚖️ Price Match']].forEach(function(t){
+  var b=document.createElement('button');b.className='tab';b.dataset.tab=t[0];b.textContent=t[1];
+  b.onclick=function(){tab(t[0])};nav.appendChild(b);
+});
+
+var fr='<section id="freight" class="panel"><div class="card"><h2 style="margin:0 0 6px">🚚 Freight per Box</h2><p class="muted">Freight per box = (Weight in KG ÷ 1000) × Freight per ton ÷ Total boxes.</p><label>Freight per Ton (₹)</label>'+inp('fc_f','e.g. 2500')+'<label>Weight (KG)</label>'+inp('fc_w','e.g. 4006.89')+'<label>Total Quantity (Boxes)</label>'+inp('fc_q','e.g. 1200')+'<div class="bigres">Freight per box<b id="fc_out">₹ 0.00</b><div class="muted" id="fc_det"></div></div><button class="secondary" style="width:100%;margin-top:12px" id="fc_clr">Clear</button></div></section>';
+var pr='<section id="price" class="panel"><div class="card"><h2 style="margin:0 0 6px">⚖️ Price Match (PO vs Booking)</h2><label>Pieces per box (to convert box ↔ piece)</label>'+inp('pm_ppb','e.g. 24')+'</div>'+side(1,'PO Price','piece')+side(2,'Booking Price','box')+'<div class="card"><label>Tolerance (₹ per piece; differences within this count as a match)</label>'+inp('pm_tol','0.01')+'</div><div id="pm_res" class="card" style="display:none"></div><button class="secondary" style="width:100%" id="pm_clr">Clear</button></section>';
+wrap.insertAdjacentHTML('beforeend',fr+pr);
+if(standalone)tab('freight');
+
+function fc(){
+  var r=nz($('fc_f').value),kg=nz($('fc_w').value),bx=nz($('fc_q').value);
+  if(!(r>=0)||!(kg>=0)||!(bx>0)){$('fc_out').textContent='₹ 0.00';$('fc_det').textContent='';return}
+  var mt=kg/1000,tot=mt*r;
+  $('fc_out').textContent='₹ '+(tot/bx).toFixed(2);
+  $('fc_det').innerHTML='Weight: '+mt.toFixed(3)+' MT<br>Total freight: ₹ '+tot.toFixed(2);
+}
+
+function rd(k){var t=nz($('pm_t'+k).value);return{p:nz($('pm_p'+k).value),u:$('pm_u'+k).value,t:isNaN(t)?0:t,inc:$('pm_i'+k).value==='1'}}
+function pm(){
+  var A=rd(1),B=rd(2),ppb=nz($('pm_ppb').value),tol=nz($('pm_tol').value),res=$('pm_res');
+  if(isNaN(tol))tol=0.01;
+  if(isNaN(A.p)||isNaN(B.p)){res.style.display='none';return}
+  res.style.display='block';
+  var hasP=ppb>0;
+  if(!hasP&&A.u!==B.u){res.innerHTML='<div class="pmst bad">Enter pieces per box above</div>';return}
+  function conv(s){
+    var raw=s.p/(s.inc?1+s.t/100:1),pc=null,bx=null;
+    if(hasP){pc=s.u==='box'?raw/ppb:raw;bx=pc*ppb}
+    else if(s.u==='piece')pc=raw;else bx=raw;
+    var m=1+s.t/100;
+    return{pc:pc,bx:bx,pct:pc==null?null:pc*m,bxt:bx==null?null:bx*m};
+  }
+  var a=conv(A),b=conv(B),usePc=a.pc!=null;
+  var d=usePc?a.pc-b.pc:a.bx-b.bx,tl=usePc?tol:tol*(hasP?ppb:1);
+  var ok=Math.abs(d)<=tl,unit=usePc?'piece':'box',base=usePc?b.pc:b.bx;
+  var msg=ok?'✓ Prices match':(d>0?'PO price is higher':'Booking price is higher'),sub='';
+  if(!ok)sub='Difference (ex-tax): ₹ '+f2(Math.abs(d))+' per '+unit+(base>0?' ('+(Math.abs(d)/base*100).toFixed(2)+'%)':'');
+  function row(n,x,y){var dd=(x==null||y==null)?null:x-y;return '<tr><td>'+n+'</td><td>'+f2(x)+'</td><td>'+f2(y)+'</td><td>'+(dd==null?'-':(dd>0?'+':'')+dd.toFixed(2))+'</td></tr>'}
+  res.innerHTML='<div class="pmst '+(ok?'ok':'bad')+'">'+msg+'<small>'+sub+'</small></div><table class="pmtab"><tr><th>Price (₹)</th><th>PO</th><th>Booking</th><th>Diff</th></tr>'+
+    row('Piece (ex-tax)',a.pc,b.pc)+row('Piece (with tax)',a.pct,b.pct)+row('Box (ex-tax)',a.bx,b.bx)+row('Box (with tax)',a.bxt,b.bxt)+'</table>';
+}
+
+['fc_f','fc_w','fc_q'].forEach(function(i){$(i).addEventListener('input',fc)});
+['pm_ppb','pm_p1','pm_u1','pm_t1','pm_i1','pm_p2','pm_u2','pm_t2','pm_i2','pm_tol'].forEach(function(i){$(i).addEventListener('input',pm);$(i).addEventListener('change',pm)});
+$('fc_clr').onclick=function(){['fc_f','fc_w','fc_q'].forEach(function(i){$(i).value=''});fc()};
+$('pm_clr').onclick=function(){['pm_ppb','pm_p1','pm_t1','pm_p2','pm_t2','pm_tol'].forEach(function(i){$(i).value=''});pm()};
+})();
+</script>
+
+<script>if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})})}</script>
+</body></html>
