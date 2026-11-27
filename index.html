@@ -34,6 +34,45 @@ label{display:block;font-size:12px;color:#536477;margin:8px 0 5px}.muted{font-si
 footer{text-align:center;color:#64748b;font-size:11px;padding:20px}
 @media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.linehead,.line{grid-template-columns:24px 1fr 1fr 1fr 1fr 1fr 28px;gap:3px}.line input[type=checkbox]{padding:0}.line input{padding:10px 5px;font-size:14px}.line output{font-size:12px}.wrap{padding:9px}}
 @media print{header,.tabs,.no-print,footer{display:none!important}.panel{display:none!important}#report.panel{display:block!important}.card{box-shadow:none}}
+#vl{--bg:#f4f5f7;--card:#fff;--text:#1b1f24;--muted:#6b7280;--line:#d8dce2;--accent:#1d6fdc;--good:#15803d;--bad:#c2410c;--danger:#dc2626;--sel:#e6f0ff;max-width:560px;margin:0 auto;padding-bottom:340px;user-select:none;-webkit-user-select:none;touch-action:manipulation;color:var(--text)}
+#vl h2.vt{font-size:18px;margin:4px 0 12px}
+#vl .vcard{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;margin-bottom:14px}
+#vl .vcard.vact{border-color:var(--accent)}
+#vl .vcard h3{font-size:16px;margin:0 0 10px;color:var(--accent)}
+#vl .vtgt{display:flex;justify-content:space-between;align-items:center;padding:10px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px;font-size:15px}
+#vl .vtgt b{font-size:18px}
+#vl .vrow{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+#vl .vln{flex:1;min-height:44px;display:flex;align-items:center;padding:0 10px;border:1px solid var(--line);border-radius:10px;font-size:18px;font-weight:600;overflow-x:auto;white-space:nowrap}
+#vl .vln:empty::before{content:"Tap a number";color:var(--muted);font-weight:400;font-size:14px}
+#vl .von{background:var(--sel);border-color:var(--accent)!important}
+#vl .vres{min-width:70px;text-align:right;font-weight:700;font-size:16px}
+#vl .vres.verr{color:var(--danger)}
+#vl .vx{width:40px;height:44px;padding:0;border:0;border-radius:10px;background:var(--danger);color:#fff;font-size:18px}
+#vl .vsum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;border-top:1px dashed var(--line);padding-top:10px;margin-top:4px;text-align:center}
+#vl .vsum span{display:block;font-size:12px;color:var(--muted)}
+#vl .vsum b{font-size:22px}
+#vl .vbal.vok b{color:var(--good)}
+#vl .vbal.vneg b{color:var(--bad)}
+#vl .vreset{width:100%;height:44px;padding:0;background:transparent;color:var(--danger);border:1px solid var(--danger);border-radius:10px;font-size:15px}
+#vl .vpad{position:fixed;left:0;right:0;bottom:0;margin:auto;max-width:560px;background:var(--card);border-top:1px solid var(--line);padding:6px 8px calc(8px + env(safe-area-inset-bottom,0px));z-index:5}
+#vl #vhint{font-size:13px;color:var(--muted);text-align:center;margin-bottom:6px}
+#vl .vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#vl .vk{height:52px;padding:0;font-size:24px;font-weight:600;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text)}
+#vl .vk:active{opacity:.6}
+#vl .vk.vop{background:var(--accent);color:#fff;border:0}
+#vl .vk.vbk{background:var(--muted);color:#fff;border:0}
+#vl .vk.vnl{background:var(--good);color:#fff;border:0}
+#pl .plops{display:flex;gap:8px;margin-top:10px}
+#pl .plops button{flex:1;padding:10px 0;font-size:20px;background:#e7eef6;color:#17324b}
+#pl .plev{font-size:13px;color:#16804a;font-weight:700;min-height:18px;margin-top:5px}
+#pl .plres{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+#pl .pltile{background:#e8f2fe;border-radius:12px;padding:14px;text-align:center}
+#pl .pltile span{display:block;font-size:12px;color:#64748b}
+#pl .pltile b{display:block;font-size:34px;color:#1769aa;margin-top:4px}
+#pl .pltile.plwarn{background:#fff0e0}
+#pl .pltile.plwarn b{color:#b45309}
+#pl .plnote{margin-top:10px;font-size:13px;color:#536477;line-height:1.7;text-align:center}
+#pl .plerr{margin-top:12px;background:#fdeceb;color:#b42318;border-radius:10px;padding:10px;text-align:center;font-weight:700}
 </style></head>
 <body>
 <header><h1>📦 Depot Stock Counting</h1><p>Offline Web App · Line-wise Counting · MRP Value · Calculator · Freight · Price Match</p></header>
@@ -41,6 +80,8 @@ footer{text-align:center;color:#64748b;font-size:11px;padding:20px}
 <nav class="tabs no-print">
 <button class="tab active" data-tab="count" onclick="tab('count')">📦 Stock Counting</button>
 <button class="tab" data-tab="calculator" onclick="tab('calculator')">🧮 Calculator</button>
+<button class="tab" data-tab="vehicle" onclick="tab('vehicle')">🚛 Vehicle Loading</button>
+<button class="tab" data-tab="planner" onclick="tab('planner')">📐 Planner</button>
 <button class="tab" data-tab="report" onclick="tab('report')">📊 Stock Report</button>
 <button class="tab" data-tab="settings" onclick="tab('settings')">⚙️ Product Settings</button>
 <button class="tab" data-tab="products" onclick="tab('products')">✏️ Add / Edit Products</button>
@@ -74,6 +115,32 @@ footer{text-align:center;color:#64748b;font-size:11px;padding:20px}
 <button onclick="key('00')">00</button><button onclick="key('0')">0</button><button onclick="key('.')">.</button><button class="eq" onclick="calculate()">=</button>
 </div></div></div>
 </section>
+<section id="vehicle" class="panel"><div id="vl">
+<h2 class="vt">🚚 Vehicle Loading Counter</h2>
+<div id="vlapp"></div>
+<button class="vreset" onclick="VL.resetAll()">Clear All</button>
+<div class="vpad">
+<div id="vhint"></div>
+<div class="vgrid">
+<button class="vk" onclick="VL.key('7')">7</button><button class="vk" onclick="VL.key('8')">8</button><button class="vk" onclick="VL.key('9')">9</button><button class="vk vbk" onclick="VL.key('⌫')">⌫</button>
+<button class="vk" onclick="VL.key('4')">4</button><button class="vk" onclick="VL.key('5')">5</button><button class="vk" onclick="VL.key('6')">6</button><button class="vk vop" onclick="VL.key('×')">×</button>
+<button class="vk" onclick="VL.key('1')">1</button><button class="vk" onclick="VL.key('2')">2</button><button class="vk" onclick="VL.key('3')">3</button><button class="vk vop" onclick="VL.key('+')">+</button>
+<button class="vk" onclick="VL.key('0')">0</button><button class="vk" onclick="VL.key('00')">00</button><button class="vk vop" onclick="VL.key('−')">−</button><button class="vk vnl" onclick="VL.key('↵')">↵</button>
+</div></div>
+</div></section>
+<section id="planner" class="panel"><div id="pl"><div class="card">
+<h2 style="margin:0 0 6px">📐 Planner</h2>
+<p class="muted">Enter the target quantity and how many fit in one row. You can type a pattern such as 9×5 (= 45). It shows how many full rows fit and how many are left loose.</p>
+<label>Target Quantity (boxes)</label>
+<input id="pl_t" type="text" inputmode="text" autocomplete="off" placeholder="e.g. 225 or 65×2+5" oninput="PL.calc()" onfocus="PL.foc('pl_t')">
+<div class="plev" id="pl_tv"></div>
+<label>Quantity per Row</label>
+<input id="pl_r" type="text" inputmode="text" autocomplete="off" placeholder="e.g. 45 or 9×5" oninput="PL.calc()" onfocus="PL.foc('pl_r')">
+<div class="plev" id="pl_rv"></div>
+<div class="plops"><button onpointerdown="event.preventDefault()" onclick="PL.ins('×')">×</button><button onpointerdown="event.preventDefault()" onclick="PL.ins('+')">+</button><button onpointerdown="event.preventDefault()" onclick="PL.ins('−')">−</button></div>
+<div id="pl_out"></div>
+<button class="secondary" style="width:100%;margin-top:14px" onclick="PL.clear()">Clear</button>
+</div></div></section>
 <section id="report" class="panel">
 <div class="card"><div class="row"><h2 style="margin:0;flex:2">Stock Report</h2><button onclick="exportCSV()">Export CSV</button><button class="secondary" onclick="window.print()">Print</button></div><div id="reportContent"></div></div>
 </section>
@@ -251,6 +318,86 @@ function backspace(){calcExpr=calcExpr.slice(0,-1);render()}
 function calculate(){try{let s=calcExpr.replace(/[+−×÷.]+$/,"");if(!s)return;calcExpr=String(evalExpr(s)).replace("-","−");render()}catch(e){document.getElementById("display").textContent="Error";document.getElementById("calcResult").textContent="";calcExpr=""}}
 document.getElementById("repDate").value=curDate();document.getElementById("repUser").value=state.user||"";
 picker();renderSelected();summary();
+</script>
+<script>
+const VL=(function(){
+const SECS=[{id:'veh',t:'Vehicle Counting'},{id:'out',t:'Taken Out of Warehouse'}];
+const fresh=()=>({veh:{target:'',lines:['']},out:{target:'',lines:['']}});
+let S=fresh(),A={id:'veh',i:0};
+try{const r=localStorage.getItem('vload');if(r){const o=JSON.parse(r);if(o&&o.veh&&o.out)S=o}}catch(e){}
+function save(){try{localStorage.setItem('vload',JSON.stringify(S))}catch(e){}}
+function ev(s){
+  s=String(s).replace(/[x×X]/g,'*').replace(/−/g,'-').replace(/\s+/g,'').replace(/[+\-*/.]+$/,'');
+  if(!s)return 0;
+  if(!/^[0-9+\-*/().]+$/.test(s))return NaN;
+  try{const v=Function('"use strict";return ('+s+')')();return isFinite(v)?Math.round(v*100)/100:NaN}catch(e){return NaN}
+}
+function render(){
+  document.getElementById('vlapp').innerHTML=SECS.map(s=>{
+    const d=S[s.id];let tot=0;
+    const rows=d.lines.map((l,i)=>{const v=ev(l);if(!isNaN(v))tot+=v;
+      return `<div class="vrow"><button class="vx" onclick="VL.clr('${s.id}',${i})">✕</button>
+      <div class="vln ${A.id===s.id&&A.i===i?'von':''}" onclick="VL.sel('${s.id}',${i})">${l}</div>
+      <span class="vres ${isNaN(v)?'verr':''}">${isNaN(v)?'?':'= '+v}</span></div>`}).join('');
+    const tv=ev(d.target),tg=isNaN(tv)?0:tv,bal=tg-tot;
+    return `<div class="vcard ${A.id===s.id?'vact':''}"><h3>${s.t}</h3>
+    <div class="vtgt ${A.id===s.id&&A.i<0?'von':''}" onclick="VL.sel('${s.id}',-1)"><span>🎯 Target</span><b>${d.target||'—'}${/[+×−]/.test(d.target)?' = '+tg:''}</b></div>
+    ${rows}
+    <div class="vsum"><div><span>Total</span><b>${tot}</b></div><div><span>Target</span><b>${tg}</b></div><div class="vbal ${bal<0?'vneg':'vok'}"><span>Balance</span><b>${bal}</b></div></div></div>`}).join('');
+  const t=SECS.find(s=>s.id===A.id).t;
+  document.getElementById('vhint').textContent=t+' ▸ '+(A.i<0?'Target':'Line '+(A.i+1));
+  const el=document.querySelector('#vl .vln.von,#vl .vtgt.von');if(el)el.scrollIntoView({block:'center'});
+}
+function sel(id,i){A={id,i};render()}
+function key(k){
+  const d=S[A.id];let v=A.i<0?d.target:d.lines[A.i];
+  if(k==='↵'){
+    if(A.i<0){A.i=0}else{if(!v)return;d.lines.splice(A.i+1,0,'');A.i++}
+    save();render();return}
+  if(k==='⌫')v=v.slice(0,-1);
+  else if(k==='+'||k==='×'||k==='−'){if(!v&&k!=='−')return;v=/[+×−]$/.test(v)?v.slice(0,-1)+k:v+k}
+  else v+=k;
+  if(A.i<0)d.target=v;else d.lines[A.i]=v;
+  save();render();
+}
+function clr(id,i){
+  const d=S[id];
+  if(d.lines.length>1)d.lines.splice(i,1);else d.lines[0]='';
+  A={id,i:Math.min(i,d.lines.length-1)};save();render();
+}
+function resetAll(){if(confirm('Clear everything?')){S=fresh();A={id:'veh',i:0};save();render()}}
+render();
+return{sel,key,clr,resetAll,render};
+})();
+</script>
+<script>
+const PL=(function(){
+const K='planner';let st={t:'',r:''},last='pl_t';
+try{const o=JSON.parse(localStorage.getItem(K)||'null');if(o&&typeof o.t==='string'&&typeof o.r==='string')st=o}catch(e){}
+function ev(s){
+  s=String(s).replace(/[x×X]/g,'*').replace(/−/g,'-').replace(/\s+/g,'').replace(/[+\-*/.]+$/,'');
+  if(!s||!/^[0-9+\-*/().]+$/.test(s))return NaN;
+  try{const v=Function('"use strict";return ('+s+')')();return isFinite(v)?Math.round(v*100)/100:NaN}catch(e){return NaN}
+}
+function $(i){return document.getElementById(i)}
+function showEv(id,txt,v){$(id).textContent=(!isNaN(v)&&/[^0-9.\s]/.test(txt))?'= '+v:''}
+function calc(){
+  const T=$('pl_t'),R=$('pl_r'),out=$('pl_out');
+  st.t=T.value;st.r=R.value;try{localStorage.setItem(K,JSON.stringify(st))}catch(e){}
+  const t=ev(T.value),r=ev(R.value);
+  showEv('pl_tv',T.value,t);showEv('pl_rv',R.value,r);
+  if(isNaN(t)||isNaN(r)){out.innerHTML='';return}
+  if(!(r>0)||t<0){out.innerHTML='<div class="plerr">Quantity per row must be more than 0</div>';return}
+  const rows=Math.floor(t/r+1e-9),loose=Math.round((t-rows*r)*100)/100;
+  out.innerHTML='<div class="plres"><div class="pltile"><span>Full Rows</span><b>'+rows+'</b></div><div class="pltile'+(loose>0?' plwarn':'')+'"><span>Loose Left</span><b>'+loose+'</b></div></div>'+
+    '<div class="plnote">'+rows+' × '+r+' = '+Math.round(rows*r*100)/100+(loose>0?' + '+loose+' loose':'')+' = '+t+'<br>Rows needed (loose counted as one more row): <b>'+(rows+(loose>0?1:0))+'</b></div>';
+}
+function ins(c){const el=$(last);el.value+=c;calc();el.focus()}
+function foc(id){last=id}
+function clear(){$('pl_t').value='';$('pl_r').value='';calc()}
+$('pl_t').value=st.t;$('pl_r').value=st.r;calc();
+return{calc,ins,foc,clear};
+})();
 </script>
 <!-- ===== ADD-ON: Freight + Price Match tabs (paste just before </body>) ===== -->
 <style>
